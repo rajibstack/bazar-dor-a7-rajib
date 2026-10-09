@@ -10,7 +10,7 @@ const BASE_URL = "https://api.api-store.workers.dev/api/bazardor";
 
 const categoryBanglaMap = {
   chal: { name: "চাল", emoji: "🍚" },
-  dal: { name: "ডাল", emoji: "🥣" },
+  dal: { name: "ডাল", emoji: "🍲" },
   tel: { name: "তেল", emoji: "🥫" },
   sobji: { name: "সবজি", emoji: "🥬" },
   mach: { name: "মাছ", emoji: "🐟" },
@@ -24,7 +24,7 @@ const categoryBanglaMap = {
 
 const defaultCategories = [
   { id: "chal", name: "চাল", emoji: "🍚" },
-  { id: "dal", name: "ডাল", emoji: "🥣" },
+  { id: "dal", name: "ডাল", emoji: "🍲" },
   { id: "tel", name: "তেল", emoji: "🥫" },
   { id: "sobji", name: "সবজি", emoji: "🥬" },
   { id: "mach", name: "মাছ", emoji: "🐟" },
@@ -62,7 +62,7 @@ export default function Navbar() {
           setCategories(categoryList);
         }
       } catch (err) {
-        console.error("Categories fetch error:", err);
+        console.error(err);
       }
     }
     getCategories();
@@ -121,29 +121,36 @@ export default function Navbar() {
 
       <div className="border-t border-gray-100/80 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-none py-2.5">
-          <ul className="flex items-center justify-center space-x-2 sm:space-x-6 min-w-max">
+          <ul className="flex items-center justify-start md:justify-center space-x-2 sm:space-x-6 min-w-max">
+            
             {categories.map((cat, idx) => {
-              const catId = (cat.id || cat.slug || cat.name || "").toString().toLowerCase().trim();
+              const raw =
+                cat.attributes && typeof cat.attributes === "object"
+                  ? cat.attributes
+                  : cat;
+
+              const catId = (raw.id || raw.slug || raw.key || raw.name || "").toString().toLowerCase().trim();
               const mapped = categoryBanglaMap[catId] || {};
 
               const catName =
-                cat.name_bn ||
-                cat.title_bn ||
+                raw.nameBn ||
+                raw.name_bn ||
+                raw.titleBn ||
+                raw.title_bn ||
                 mapped.name ||
-                (cat.name && /[\u0980-\u09FF]/.test(cat.name) ? cat.name : null) ||
-                cat.name ||
+                raw.name ||
                 catId;
 
-              const catEmoji = cat.emoji || cat.icon || mapped.emoji || "🍚";
-              const isActive = currentCategory === catId;
+              const catEmoji = mapped.emoji || raw.emoji || raw.icon || "🍚";
+              const isActive = currentCategory === catId || currentCategory === raw.slug;
 
               return (
                 <li key={catId || idx}>
                   <Link
-                    href={`/?category=${catId}`}
+                    href={`/?category=${encodeURIComponent(raw.slug || catId)}`}
                     className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition ${
                       isActive
-                        ? "bg-emerald-50 text-[#108a00] font-semibold border border-emerald-200"
+                        ? "bg-emerald-600 text-white font-semibold shadow-sm"
                         : "text-gray-700 hover:text-[#108a00] hover:bg-gray-50"
                     }`}
                   >
