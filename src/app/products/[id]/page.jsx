@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { parseApiProduct, formatBanglaNumber } from "@/lib/parser";
 
-const PRODUCTS_API = "https://api.api-store.workers.dev/api/bazardor/products";
+const PRODUCTS_API = "/api/bazardor/products";
 
 const translateCategory = (cat = "") => {
   const c = cat.toLowerCase().trim();
@@ -42,8 +42,11 @@ function ProductDetailsContent() {
     async function fetchProductAndMarkets() {
       setLoading(true);
       try {
-        const res = await fetch(PRODUCTS_API);
-        const data = await res.json();
+        const res = await fetch(PRODUCTS_API).catch(() => null);
+        let data = null;
+        if (res && res.ok) {
+          data = await res.json();
+        }
         const rawList = Array.isArray(data)
           ? data
           : data?.products || data?.data || data?.result || [];
@@ -71,8 +74,8 @@ function ProductDetailsContent() {
             unit: unitBn,
             subtitle: `প্রতি ${unitBn} · ${catBn}`,
             trendText: found.change >= 0 
-              ? `গতকালের তুলনায় আজ দাম বেড়েছে · ${formatBanglaNumber(Math.abs(found.change))}%` 
-              : `গতকালের তুলনায় আজ দাম কমেছে · ${formatBanglaNumber(Math.abs(found.change))}%`
+              ? `গতকালের তুলনায় আজ দাম বেড়েছে · ${formatBanglaNumber(Math.abs(found.change))}%` 
+              : `গতকালের তুলনায় আজ দাম কমেছে · ${formatBanglaNumber(Math.abs(found.change))}%`
           });
 
           const basePrice = found.price;
@@ -82,13 +85,13 @@ function ProductDetailsContent() {
             { name: "বাজারহাট", division: "খুলনা" },
             { name: "বাসারহাট বাজার", division: "রাজশাহী" },
             { name: "চৌর বাজার", division: "ময়মনসিংহ" },
-            { name: "আয়তলী বাজার", division: "চট্টগ্রাম" },
+            { name: "আয়তলী বাজার", division: "চট্টগ্রাম" },
             { name: "ডবলগেট বাজার", division: "খুলনা" },
             { name: "চৌরাস্তা বাজার", division: "সিলেট" },
             { name: "গ্রীন মার্কেট, মিরপুর", division: "ঢাকা" },
             { name: "চোদগ্রাম বাজার", division: "চট্টগ্রাম" },
             { name: "আমবাজার", division: "সিলেট" },
-            { name: "কারওয়ান বাজার", division: "ঢাকা" },
+            { name: "কারওয়ান বাজার", division: "ঢাকা" },
           ];
 
           const generatedMarkets = marketNames.map((m, idx) => {
@@ -101,7 +104,7 @@ function ProductDetailsContent() {
           setMarkets(generatedMarkets);
         }
       } catch (err) {
-        console.error("API Fetch Error:", err);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
@@ -122,7 +125,7 @@ function ProductDetailsContent() {
   if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center text-gray-500">
-        কোনো পণ্য পাওয়া যায়নি।
+        কোনো পণ্য পাওয়া যায়নি।
       </div>
     );
   }
@@ -223,7 +226,7 @@ function ProductDetailsContent() {
                   <th className="py-3.5 px-6">বিভাগ</th>
                   <th className="py-3.5 px-6">সর্বনিম্ন</th>
                   <th className="py-3.5 px-6">সর্বাধিক</th>
-                  <th className="py-3.5 px-6">গড়</th>
+                  <th className="py-3.5 px-6">গড়</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs sm:text-sm text-gray-700">

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import PriceTicker from "./PriceTicker";
 
-const BASE_URL = "https://api.api-store.workers.dev/api/bazardor";
+const BASE_URL = "/api/bazardor";
 
 const categoryBanglaMap = {
   chal: { name: "চাল", emoji: "🍚" },
@@ -36,7 +36,7 @@ const defaultCategories = [
 export default function Navbar() {
   const { data: session, isPending } = useSession();
   const searchParams = useSearchParams();
-  const params = useParams(); // Dynamic Route Slug check korar jonno
+  const params = useParams();
 
   const currentCategory = params?.slug || searchParams.get("category");
 
@@ -57,7 +57,8 @@ export default function Navbar() {
   useEffect(() => {
     async function getCategories() {
       try {
-        const res = await fetch(`${BASE_URL}/categories`);
+        const res = await fetch(`${BASE_URL}/categories`).catch(() => null);
+        if (!res || !res.ok) return;
         const data = await res.json();
         const categoryList = Array.isArray(data)
           ? data
@@ -66,7 +67,7 @@ export default function Navbar() {
           setCategories(categoryList);
         }
       } catch (err) {
-        console.error(err);
+        setCategories(defaultCategories);
       }
     }
     getCategories();
@@ -84,7 +85,7 @@ export default function Navbar() {
               বাজার দর
             </span>
             <span className="text-xs text-gray-500 font-medium">
-              {banglaDate || "শুক্রবার, ৯ অক্টোবর, ২০২৬"}
+              {banglaDate || "শনিবার, ১০ অক্টোবর, ২০২৬"}
             </span>
           </div>
         </Link>
