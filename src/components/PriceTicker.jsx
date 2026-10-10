@@ -47,7 +47,7 @@ export default function PriceTicker() {
         .ticker-track {
           display: flex;
           width: max-content;
-          animation: tickerScroll 60s linear infinite;
+          animation: tickerScroll 70s linear infinite;
         }
         .ticker-track:hover {
           animation-play-state: paused;
