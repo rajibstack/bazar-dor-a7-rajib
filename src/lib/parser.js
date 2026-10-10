@@ -113,6 +113,16 @@ export const getProductEmoji = (name = "", category = "") => {
     c.includes("dal")
   )
     return "🍲";
+      if (
+    n.includes("মাছ") ||
+    n.includes("ইলিশ") ||
+    n.includes("রুই") ||
+    n.includes("কাতলা") ||
+    n.includes("তেলাপিয়া") ||
+    n.includes("পাঙ্গাস") ||
+    c.includes("mach")
+  )
+    return "🐟";
   if (
     n.includes("সরিষা") ||
     n.includes("পাম") ||
@@ -141,16 +151,6 @@ export const getProductEmoji = (name = "", category = "") => {
     c.includes("sobji")
   )
     return "🥬";
-  if (
-    n.includes("মাছ") ||
-    n.includes("ইলিশ") ||
-    n.includes("রুই") ||
-    n.includes("কাতলা") ||
-    n.includes("তেলাপিয়া") ||
-    n.includes("পাঙ্গাস") ||
-    c.includes("mach")
-  )
-    return "🐟";
   if (
     n.includes("মাংস") ||
     n.includes("গরু") ||

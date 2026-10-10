@@ -57,7 +57,9 @@ export default function Navbar() {
       try {
         const res = await fetch(`${BASE_URL}/categories`);
         const data = await res.json();
-        const categoryList = Array.isArray(data) ? data : data.categories || data.data || [];
+        const categoryList = Array.isArray(data)
+          ? data
+          : data.categories || data.data || [];
         if (Array.isArray(categoryList) && categoryList.length > 0) {
           setCategories(categoryList);
         }
@@ -122,14 +124,16 @@ export default function Navbar() {
       <div className="border-t border-gray-100/80 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-none py-2.5">
           <ul className="flex items-center justify-start md:justify-center space-x-2 sm:space-x-6 min-w-max">
-            
             {categories.map((cat, idx) => {
               const raw =
                 cat.attributes && typeof cat.attributes === "object"
                   ? cat.attributes
                   : cat;
 
-              const catId = (raw.id || raw.slug || raw.key || raw.name || "").toString().toLowerCase().trim();
+              const catId = (raw.id || raw.slug || raw.key || raw.name || "")
+                .toString()
+                .toLowerCase()
+                .trim();
               const mapped = categoryBanglaMap[catId] || {};
 
               const catName =
@@ -142,7 +146,8 @@ export default function Navbar() {
                 catId;
 
               const catEmoji = mapped.emoji || raw.emoji || raw.icon || "🍚";
-              const isActive = currentCategory === catId || currentCategory === raw.slug;
+              const isActive =
+                currentCategory === catId || currentCategory === raw.slug;
 
               return (
                 <li key={catId || idx}>
