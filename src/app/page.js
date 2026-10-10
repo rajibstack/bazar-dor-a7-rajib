@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import ProductSections from "@/components/ProductSections";
-import Footer from "@/components/Footer";
 
 export default function Home() {
   return (

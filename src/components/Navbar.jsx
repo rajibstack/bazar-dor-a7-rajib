@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import PriceTicker from "./PriceTicker";
@@ -36,7 +36,9 @@ const defaultCategories = [
 export default function Navbar() {
   const { data: session, isPending } = useSession();
   const searchParams = useSearchParams();
-  const currentCategory = searchParams.get("category");
+  const params = useParams(); // Dynamic Route Slug check korar jonno
+  
+  const currentCategory = params?.slug || searchParams.get("category");
 
   const [categories, setCategories] = useState(defaultCategories);
   const [banglaDate, setBanglaDate] = useState("");
@@ -105,13 +107,13 @@ export default function Navbar() {
           ) : (
             <>
               <Link
-                href="/login"
+                href="/signin"
                 className="px-4 py-2 text-sm font-semibold text-gray-800 hover:text-[#108a00] transition"
               >
                 সাইন ইন
               </Link>
               <Link
-                href="/register"
+                href="/signup"
                 className="px-5 py-2 text-sm font-semibold text-white bg-[#108a00] hover:bg-[#0d7300] rounded-lg shadow-sm transition"
               >
                 সাইন আপ
@@ -146,13 +148,14 @@ export default function Navbar() {
                 catId;
 
               const catEmoji = mapped.emoji || raw.emoji || raw.icon || "🍚";
+              const targetSlug = raw.slug || catId;
               const isActive =
                 currentCategory === catId || currentCategory === raw.slug;
 
               return (
                 <li key={catId || idx}>
                   <Link
-                    href={`/?category=${encodeURIComponent(raw.slug || catId)}`}
+                    href={`/category/${encodeURIComponent(targetSlug)}`}
                     className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition ${
                       isActive
                         ? "bg-emerald-600 text-white font-semibold shadow-sm"
