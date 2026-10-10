@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# বাজার দর (Bazar Dor) 🛒
 
-## Getting Started
+"বাজার দর" হলো একটি আধুনিক, রিয়েল-টাইম এবং এআই-ড্রাইভেন ওয়েব অ্যাপ্লিকেশন, যার মাধ্যমে বাংলাদেশের নিত্যপ্রয়োজনীয় পণ্যের (চাল, ডাল, তেল, সবজি, মাছ, মাংস ইত্যাদি) প্রতিদিনের বাজারদর সহজে জানা ও তুলনা করা যায়। প্রজেক্টটি সম্পূর্ণ বাংলা ইন্টারফেস এবং রেসপন্সিভ ডিজাইনে তৈরি।
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Technologies Used (ব্যবহৃত প্রযুক্তি)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **Frontend:** Next.js (App Router), React, JavaScript, Tailwind CSS, Vite
+* **Backend & API:** Next.js API Proxy Routes, Custom Worker APIs
+* **Database & Auth:** MongoDB Atlas, Better Auth
+* **Deployment:** Vercel
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ✨ Key Features (মূল বৈশিষ্ট্যসমূহ)
 
-## Learn More
+1. **রিয়েল-টাইম বাজার দর ও ক্যাটাগরি ট্র্যাকিং:** চাল, ডাল, তেল, মাছ, মাংসসহ সকল নিত্যপ্রয়োজনীয় পণ্যের হালনাগাদ দাম এবং ক্যাটাগরিভিত্তিক ব্রাউজিং সুবিধা।
+2. **সম্পূর্ণ বাংলা ইন্টারফেস:** স্থানীয় ব্যবহারকারীদের কথা মাথায় রেখে সম্পূর্ণ প্ল্যাটফর্মটি বাংলা ভাষা, তারিখ (`bn-BD`) এবং স্থানীয় মুদ্রার ফরম্যাটে তৈরি।
+3. **মাল্টি-ডিভিশন ও বাজার তুলনা:** বাংলাদেশের বিভিন্ন বিভাগ (ঢাকা, চট্টগ্রাম, খুলনা, রাজশাহী ইত্যাদি) এবং স্থানীয় বাজারের পণ্যের সর্বনিম্ন, সর্বোচ্চ ও গড় দামের তুলনা করার সুবিধা।
+4. **ডুয়াল-এপিআই প্রক্সি ফলব্যাক সিস্টেম:** ফায়ারফক্স ও অন্যান্য ব্রাউজারের CORS এবং নেটওয়ার্ক রেস্ট্রিকশন এড়াতে নিরাপদ ও সেন্ট্রালাইজড নেক্সট জেএস প্রক্সি রাউট ইন্টিগ্রেশন।
+5. **নিরাপদ ইউজার অথেন্টিকেশন:** MongoDB Atlas এবং Better Auth-এর মাধ্যমে সুরক্ষিত সাইন-ইন, সাইন-আপ ও সেশন ম্যানেজমেন্ট ব্যবস্থা।
+6. **লাইভ প্রাইস টিকার (Price Ticker):** হেডার অংশে চলমান মূল্য টিকারের মাধ্যমে তাৎক্ষণিকভাবে পণ্যের দাম বাড়া বা কমার ট্রেন্ড দেখতে পাওয়ার সুবিধা।
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
