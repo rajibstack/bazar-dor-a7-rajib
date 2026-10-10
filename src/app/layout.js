@@ -1,3 +1,4 @@
+import { Toaster } from "react-hot-toast";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
         </Suspense>
         <main className="flex-1">{children}</main>
         <Footer />
+        <Toaster position="top-center" reverseOrder={false} />
       </body>
     </html>
   );
