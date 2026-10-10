@@ -4,7 +4,7 @@ import { MongoClient } from "mongodb";
 
 const uri = process.env.BETTER_AUTH_DB_URL;
 const client = new MongoClient(uri);
-const db = client.db("bazar_dor"); // আপনার ডাটাবেজের নাম
+const db = client.db("bazar_dor");
 
 export const auth = betterAuth({
   database: mongodbAdapter(db),
