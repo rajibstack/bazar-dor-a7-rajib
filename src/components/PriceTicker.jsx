@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { parseApiProduct, formatBanglaNumber } from "@/lib/parser";
 
 const PRODUCTS_API = "/api/bazardor/products";
@@ -63,9 +64,10 @@ export default function PriceTicker() {
           const isUp = numChange >= 0;
 
           return (
-            <div
+            <Link
               key={`${item.id}-${idx}`}
-              className="flex items-center space-x-2 whitespace-nowrap px-4 border-r border-emerald-200/60 last:border-none"
+              href={`/products/${item.id}`}
+              className="flex items-center space-x-2 whitespace-nowrap px-4 border-r border-emerald-200/60 last:border-none hover:opacity-80 transition-opacity cursor-pointer"
             >
               <span className="text-base">{item.emoji}</span>
               <span className="font-medium text-gray-800">{item.name}</span>
@@ -79,7 +81,7 @@ export default function PriceTicker() {
               >
                 {isUp ? "▲" : "▼"} {formatBanglaNumber(Math.abs(numChange))}%
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>
