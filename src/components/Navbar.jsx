@@ -37,7 +37,7 @@ export default function Navbar() {
   const { data: session, isPending } = useSession();
   const searchParams = useSearchParams();
   const params = useParams(); // Dynamic Route Slug check korar jonno
-  
+
   const currentCategory = params?.slug || searchParams.get("category");
 
   const [categories, setCategories] = useState(defaultCategories);

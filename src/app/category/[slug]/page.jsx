@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-const BASE_URL = "https://api.abcz.workers.dev/api/bazardor";
+const BASE_URL = "/api/bazardor";
 
 const categoryMetaMap = {
   chal: { title: "চাল", icon: "🍚" },
@@ -45,9 +45,7 @@ function parseNum(val) {
 
 function CategoryContent() {
   const params = useParams();
-  const rawSlug = params?.slug
-    ? decodeURIComponent(params.slug).toLowerCase().trim()
-    : "";
+  const rawSlug = params?.slug ? decodeURIComponent(params.slug).toLowerCase().trim() : "";
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,83 +59,82 @@ function CategoryContent() {
     async function fetchCategoryProducts() {
       setLoading(true);
       try {
-        const res = await fetch(`${BASE_URL}/products?category=${rawSlug}`);
-        const data = await res.json();
+        const [catRes, prodRes] = await Promise.all([
+          fetch(`${BASE_URL}/categories`).catch(() => null),
+          fetch(`${BASE_URL}/products`).catch(() => null),
+        ]);
 
-        let rawList = Array.isArray(data)
-          ? data
-          : data.products || data.data || data.items || [];
+        let categoriesList = [];
+        if (catRes && catRes.ok) {
+          const catJson = await catRes.json();
+          categoriesList = Array.isArray(catJson) ? catJson : catJson.categories || catJson.data || [];
+        }
 
-        if (rawList.length === 0) {
-          const allRes = await fetch(`${BASE_URL}/products`);
-          const allData = await allRes.json();
-          const allList = Array.isArray(allData)
-            ? allData
-            : allData.products || allData.data || allData.items || [];
+        let allProductsList = [];
+        if (prodRes && prodRes.ok) {
+          const prodJson = await prodRes.json();
+          allProductsList = Array.isArray(prodJson) ? prodJson : prodJson.products || prodJson.data || prodJson.items || [];
+        }
 
-          rawList = allList.filter((p) => {
-            const attr =
-              p.attributes && typeof p.attributes === "object"
-                ? p.attributes
-                : p;
-            const pCat = (attr.category || attr.categorySlug || attr.cat || "")
-              .toString()
-              .toLowerCase()
-              .trim();
+        const matchedCat = categoriesList.find((cat) => {
+          const attr = cat.attributes && typeof cat.attributes === "object" ? cat.attributes : cat;
+          const catId = (attr.id || attr.slug || attr.key || attr.name || "").toString().toLowerCase().trim();
+          return catId === rawSlug || attr.slug === rawSlug;
+        });
+
+        const mappedMeta = categoryMetaMap[rawSlug] || {};
+        let catTitle = mappedMeta.title || rawSlug;
+        let catIcon = mappedMeta.icon || "🛒";
+
+        if (matchedCat) {
+          const attr = matchedCat.attributes && typeof matchedCat.attributes === "object" ? matchedCat.attributes : matchedCat;
+          catTitle = attr.nameBn || attr.name_bn || attr.titleBn || attr.title || attr.name || catTitle;
+          catIcon = attr.emoji || attr.icon || catIcon;
+        }
+
+        setCategoryInfo({ title: catTitle, icon: catIcon });
+
+        let categoryRawProducts = [];
+        if (matchedCat) {
+          const attr = matchedCat.attributes && typeof matchedCat.attributes === "object" ? matchedCat.attributes : matchedCat;
+          categoryRawProducts = attr.products || attr.items || attr.data || attr.list || [];
+        }
+
+        if (categoryRawProducts.length === 0) {
+          categoryRawProducts = allProductsList.filter((p) => {
+            const attr = p.attributes && typeof p.attributes === "object" ? p.attributes : p;
+            const pCat = (attr.category || attr.categorySlug || attr.cat || attr.categoryId || "").toString().toLowerCase().trim();
             return pCat === rawSlug || pCat.includes(rawSlug);
           });
         }
 
-        const mappedMeta = categoryMetaMap[rawSlug] || {};
-        setCategoryInfo({
-          title: mappedMeta.title || rawSlug,
-          icon: mappedMeta.icon || "🛒",
-        });
+        const formattedProducts = categoryRawProducts.map((p) => {
+          const prodAttr = p.attributes && typeof p.attributes === "object" ? p.attributes : p;
+          const pName = prodAttr.nameBn || prodAttr.name_bn || prodAttr.titleBn || prodAttr.title || prodAttr.name || "";
 
-        const formattedProducts = rawList.map((p) => {
-          const attr =
-            p.attributes && typeof p.attributes === "object" ? p.attributes : p;
+          const globalMatch = allProductsList.find((gp) => {
+            const gAttr = gp.attributes && typeof gp.attributes === "object" ? gp.attributes : gp;
+            const gName = gAttr.nameBn || gAttr.name_bn || gAttr.titleBn || gAttr.title || gAttr.name || "";
+            return (p.id && gp.id && p.id === gp.id) || (pName && gName && pName === gName);
+          });
 
-          const rawPrice =
-            attr.price ??
-            attr.todayPrice ??
-            attr.currentPrice ??
-            attr.amount ??
-            attr.rate ??
-            attr.price_bn ??
-            0;
-          const rawChange =
-            attr.change ??
-            attr.priceChange ??
-            attr.percentage ??
-            attr.diff ??
-            attr.change_bn ??
-            0;
+          const targetAttr = globalMatch
+            ? (globalMatch.attributes && typeof globalMatch.attributes === "object" ? globalMatch.attributes : globalMatch)
+            : prodAttr;
 
-          const rawUnit = (attr.unit || attr.unitBn || attr.unit_bn || "kg")
-            .toString()
-            .toLowerCase()
-            .trim();
-          const unit =
-            unitBanglaMap[rawUnit] ||
-            attr.unit ||
-            attr.unitBn ||
-            attr.unit_bn ||
-            "প্রতি কেজি";
+          const rawPrice = targetAttr.price ?? targetAttr.price_bn ?? targetAttr.priceBn ?? targetAttr.todayPrice ?? targetAttr.currentPrice ?? targetAttr.amount ?? targetAttr.rate ?? 0;
+          const rawChange = targetAttr.change ?? targetAttr.change_bn ?? targetAttr.changeBn ?? targetAttr.priceChange ?? targetAttr.percentage ?? targetAttr.diff ?? 0;
+          
+          const rawUnit = (targetAttr.unit || targetAttr.unitBn || targetAttr.unit_bn || "kg").toString().toLowerCase().trim();
+          const unit = unitBanglaMap[rawUnit] || targetAttr.unit || targetAttr.unitBn || targetAttr.unit_bn || "প্রতি কেজি";
 
           return {
-            id: p.id || attr.id || attr._id || Math.random(),
-            name:
-              attr.nameBn ||
-              attr.name_bn ||
-              attr.titleBn ||
-              attr.title ||
-              attr.name ||
-              "অজানা পণ্য",
+            id: p.id || targetAttr.id || targetAttr._id || Math.random(),
+            name: pName || "অজানা পণ্য",
             unit: unit,
             price: parseNum(rawPrice),
             change: parseNum(rawChange),
-            icon: attr.emoji || attr.icon || mappedMeta.icon || "🛒",
+            icon: targetAttr.emoji || targetAttr.icon || catIcon,
           };
         });
 
@@ -173,10 +170,7 @@ function CategoryContent() {
         <div className="w-full h-14 bg-gray-200 animate-pulse rounded-2xl"></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="h-36 bg-gray-200 animate-pulse rounded-2xl"
-            ></div>
+            <div key={i} className="h-36 bg-gray-200 animate-pulse rounded-2xl"></div>
           ))}
         </div>
       </div>
@@ -212,9 +206,7 @@ function CategoryContent() {
           {categoryInfo.icon}
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {categoryInfo.title}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">{categoryInfo.title}</h1>
           <p className="text-xs text-gray-500 mt-1">
             {sortedProducts.length}টি পণ্যের আজকের দাম ও পরিবর্তন
           </p>
@@ -242,8 +234,7 @@ function CategoryContent() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {sortedProducts.map((product) => {
-          const isUp =
-            product.change > 0 ? true : product.change < 0 ? false : null;
+          const isUp = product.change > 0 ? true : product.change < 0 ? false : null;
 
           return (
             <Link
@@ -265,9 +256,7 @@ function CategoryContent() {
 
               <div className="mt-4 pt-3 border-t border-gray-50 flex items-end justify-between">
                 <div>
-                  <span className="text-[11px] text-gray-400 block">
-                    আজকের দাম
-                  </span>
+                  <span className="text-[11px] text-gray-400 block">আজকের দাম</span>
                   <span className="text-lg font-extrabold text-gray-900">
                     {product.price} টাকা
                   </span>
@@ -278,8 +267,8 @@ function CategoryContent() {
                     isUp === true
                       ? "bg-red-50 text-red-600"
                       : isUp === false
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "bg-gray-100 text-gray-600"
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {isUp === true && "▲ "}
@@ -298,11 +287,7 @@ function CategoryContent() {
 
 export default function CategoryPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-8 text-center text-gray-500">লোড হচ্ছে...</div>
-      }
-    >
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">লোড হচ্ছে...</div>}>
       <CategoryContent />
     </Suspense>
   );

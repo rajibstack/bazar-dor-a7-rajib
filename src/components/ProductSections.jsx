@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import { parseApiProduct, formatBanglaNumber } from "@/lib/parser";
 
-const PRODUCTS_API = "https://api.api-store.workers.dev/api/bazardor/products";
+const PRODUCTS_API = "/api/bazardor/products";
 
 export default function ProductSections() {
   const searchParams = useSearchParams();
@@ -22,8 +22,12 @@ export default function ProductSections() {
           ? `${PRODUCTS_API}?category=${encodeURIComponent(activeCategory)}`
           : PRODUCTS_API;
 
-        const res = await fetch(url);
-        const data = await res.json();
+        const res = await fetch(url).catch(() => null);
+        let data = null;
+        if (res && res.ok) {
+          data = await res.json();
+        }
+
         const list = Array.isArray(data)
           ? data
           : data?.products || data?.data || data?.result || [];
@@ -31,7 +35,7 @@ export default function ProductSections() {
         const parsed = list.map((item, idx) => parseApiProduct(item, idx)).filter(Boolean);
         setAllProducts(parsed);
       } catch (err) {
-        console.error("API Fetch Error:", err);
+        setAllProducts([]);
       } finally {
         setLoading(false);
       }
@@ -67,7 +71,7 @@ export default function ProductSections() {
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-r-transparent" />
         <p className="mt-3 text-sm font-medium text-gray-500">
-          API theke data load hocche...
+          এপিআই থেকে তথ্য লোড হচ্ছে...
         </p>
       </div>
     );
@@ -121,7 +125,7 @@ export default function ProductSections() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-8 text-center text-gray-500 border border-gray-100">
-            এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
+            এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
           </div>
         )}
       </section>

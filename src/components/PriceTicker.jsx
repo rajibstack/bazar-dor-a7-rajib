@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { parseApiProduct, formatBanglaNumber } from "@/lib/parser";
 
-const PRODUCTS_API = "https://api.api-store.workers.dev/api/bazardor/products";
+const PRODUCTS_API = "/api/bazardor/products";
 
 export default function PriceTicker() {
   const [products, setProducts] = useState([]);
@@ -12,8 +12,11 @@ export default function PriceTicker() {
   useEffect(() => {
     async function fetchTicker() {
       try {
-        const res = await fetch(PRODUCTS_API);
-        const data = await res.json();
+        const res = await fetch(PRODUCTS_API).catch(() => null);
+        let data = null;
+        if (res && res.ok) {
+          data = await res.json();
+        }
         const rawList = Array.isArray(data)
           ? data
           : data?.products || data?.data || data?.result || [];
@@ -23,7 +26,7 @@ export default function PriceTicker() {
           setProducts(parsed);
         }
       } catch (err) {
-        console.error("Ticker Error:", err);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
