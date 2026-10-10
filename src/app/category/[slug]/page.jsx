@@ -38,9 +38,103 @@ const unitBanglaMap = {
 
 function parseNum(val) {
   if (val === null || val === undefined) return 0;
+  if (typeof val === "number") return val;
   const str = String(val).replace(/[^\d.-]/g, "");
   const num = parseFloat(str);
   return isNaN(num) ? 0 : num;
+}
+
+function toBanglaNum(num) {
+  if (num === null || num === undefined) return "০";
+  const engNums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  const bdnNums = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  let str = String(num);
+  for (let i = 0; i < 10; i++) {
+    str = str.replaceAll(engNums[i], bdnNums[i]);
+  }
+  return str;
+}
+
+function extractPrice(obj) {
+  if (!obj) return 0;
+  if (typeof obj === "number" || typeof obj === "string") return parseNum(obj);
+
+  const direct = obj.price ?? obj.price_bn ?? obj.priceBn ?? obj.todayPrice ?? obj.currentPrice ?? obj.amount ?? obj.rate;
+  if (direct !== undefined && direct !== null) {
+    if (typeof direct === "object") return extractPrice(direct);
+    const parsed = parseNum(direct);
+    if (parsed > 0) return parsed;
+  }
+
+  const nested = obj.today || obj.current || obj.value || obj.avg || obj.average || obj.price_today;
+  if (nested !== undefined && nested !== null) {
+    if (typeof nested === "object") return extractPrice(nested);
+    const parsed = parseNum(nested);
+    if (parsed > 0) return parsed;
+  }
+
+  if (Array.isArray(obj.prices) && obj.prices.length > 0) {
+    return extractPrice(obj.prices[0]);
+  }
+  if (Array.isArray(obj.history) && obj.history.length > 0) {
+    return extractPrice(obj.history[obj.history.length - 1]);
+  }
+
+  return 0;
+}
+
+function extractChange(obj) {
+  if (!obj) return 0;
+  if (typeof obj === "number") return obj;
+  if (typeof obj === "string") {
+    const cleanStr = obj.trim();
+    const num = parseNum(cleanStr);
+    if (cleanStr.includes("down") || cleanStr.includes("▼") || cleanStr.includes("-")) {
+      return -Math.abs(num);
+    }
+    return num;
+  }
+
+  if (typeof obj === "object") {
+    const keys = [
+      "change", "change_bn", "changeBn", "priceChange", "percentage",
+      "percentageBn", "diff", "percent", "variation", "trend",
+      "rateChange", "priceChangePercentage", "changePercentage", "pct", "value"
+    ];
+
+    for (const k of keys) {
+      if (obj[k] !== undefined && obj[k] !== null) {
+        const res = extractChange(obj[k]);
+        if (res !== 0) {
+          if (obj.dir === "down" || obj.direction === "down" || obj.sign === "-") {
+            return -Math.abs(res);
+          }
+          return res;
+        }
+      }
+    }
+
+    for (const val of Object.values(obj)) {
+      if (val && (typeof val === "object" || typeof val === "string" || typeof val === "number")) {
+        const res = extractChange(val);
+        if (res !== 0) {
+          if (obj.dir === "down" || obj.direction === "down" || obj.sign === "-") {
+            return -Math.abs(res);
+          }
+          return res;
+        }
+      }
+    }
+  }
+
+  const curr = extractPrice(obj);
+  const prev = parseNum(obj.previousPrice ?? obj.oldPrice ?? obj.prevPrice ?? obj.yesterdayPrice ?? obj.lastPrice ?? obj.lastMonth ?? obj.lastWeek);
+  if (curr > 0 && prev > 0 && curr !== prev) {
+    const diff = ((curr - prev) / prev) * 100;
+    return parseFloat(diff.toFixed(1));
+  }
+
+  return 0;
 }
 
 function CategoryContent() {
@@ -94,47 +188,53 @@ function CategoryContent() {
 
         setCategoryInfo({ title: catTitle, icon: catIcon });
 
-        let categoryRawProducts = [];
-        if (matchedCat) {
-          const attr = matchedCat.attributes && typeof matchedCat.attributes === "object" ? matchedCat.attributes : matchedCat;
-          categoryRawProducts = attr.products || attr.items || attr.data || attr.list || [];
-        }
+        let categoryRawProducts = allProductsList.filter((p) => {
+          const attr = p.attributes && typeof p.attributes === "object" ? p.attributes : p;
+          const pCat = (attr.category || attr.categorySlug || attr.cat || attr.categoryId || "").toString().toLowerCase().trim();
+          return pCat === rawSlug || pCat.includes(rawSlug) || rawSlug.includes(pCat) || pCat === catTitle;
+        });
 
-        if (categoryRawProducts.length === 0) {
-          categoryRawProducts = allProductsList.filter((p) => {
-            const attr = p.attributes && typeof p.attributes === "object" ? p.attributes : p;
-            const pCat = (attr.category || attr.categorySlug || attr.cat || attr.categoryId || "").toString().toLowerCase().trim();
-            return pCat === rawSlug || pCat.includes(rawSlug);
+        if (categoryRawProducts.length === 0 && matchedCat) {
+          const attr = matchedCat.attributes && typeof matchedCat.attributes === "object" ? matchedCat.attributes : matchedCat;
+          const subList = attr.products || attr.items || attr.data || attr.list || [];
+          
+          categoryRawProducts = subList.map((subP) => {
+            const subAttr = subP.attributes && typeof subP.attributes === "object" ? subP.attributes : subP;
+            const subId = String(subP.id || subAttr.id || "");
+            const subSlug = (subAttr.slug || subP.slug || "").toString().toLowerCase().trim();
+            const subName = (subAttr.nameBn || subAttr.name_bn || subAttr.titleBn || subAttr.title || subAttr.name || "").toString().trim();
+
+            const found = allProductsList.find((gp) => {
+              const gAttr = gp.attributes && typeof gp.attributes === "object" ? gp.attributes : gp;
+              const gId = String(gp.id || gAttr.id || "");
+              const gSlug = (gAttr.slug || gp.slug || "").toString().toLowerCase().trim();
+              const gName = (gAttr.nameBn || gAttr.name_bn || gAttr.titleBn || gAttr.title || gAttr.name || "").toString().trim();
+
+              if (subId && gId && subId === gId) return true;
+              if (subSlug && gSlug && subSlug === gSlug) return true;
+              if (subName && gName && subName === gName) return true;
+              return false;
+            });
+            return found || subP;
           });
         }
 
         const formattedProducts = categoryRawProducts.map((p) => {
           const prodAttr = p.attributes && typeof p.attributes === "object" ? p.attributes : p;
           const pName = prodAttr.nameBn || prodAttr.name_bn || prodAttr.titleBn || prodAttr.title || prodAttr.name || "";
+          const price = extractPrice(prodAttr) || extractPrice(p);
+          const change = extractChange(prodAttr) || extractChange(p);
 
-          const globalMatch = allProductsList.find((gp) => {
-            const gAttr = gp.attributes && typeof gp.attributes === "object" ? gp.attributes : gp;
-            const gName = gAttr.nameBn || gAttr.name_bn || gAttr.titleBn || gAttr.title || gAttr.name || "";
-            return (p.id && gp.id && p.id === gp.id) || (pName && gName && pName === gName);
-          });
-
-          const targetAttr = globalMatch
-            ? (globalMatch.attributes && typeof globalMatch.attributes === "object" ? globalMatch.attributes : globalMatch)
-            : prodAttr;
-
-          const rawPrice = targetAttr.price ?? targetAttr.price_bn ?? targetAttr.priceBn ?? targetAttr.todayPrice ?? targetAttr.currentPrice ?? targetAttr.amount ?? targetAttr.rate ?? 0;
-          const rawChange = targetAttr.change ?? targetAttr.change_bn ?? targetAttr.changeBn ?? targetAttr.priceChange ?? targetAttr.percentage ?? targetAttr.diff ?? 0;
-          
-          const rawUnit = (targetAttr.unit || targetAttr.unitBn || targetAttr.unit_bn || "kg").toString().toLowerCase().trim();
-          const unit = unitBanglaMap[rawUnit] || targetAttr.unit || targetAttr.unitBn || targetAttr.unit_bn || "প্রতি কেজি";
+          const rawUnit = (prodAttr.unit || prodAttr.unitBn || prodAttr.unit_bn || "kg").toString().toLowerCase().trim();
+          const unit = unitBanglaMap[rawUnit] || prodAttr.unit || prodAttr.unitBn || prodAttr.unit_bn || "প্রতি কেজি";
 
           return {
-            id: p.id || targetAttr.id || targetAttr._id || Math.random(),
+            id: p.id || prodAttr.id || prodAttr._id || Math.random(),
             name: pName || "অজানা পণ্য",
             unit: unit,
-            price: parseNum(rawPrice),
-            change: parseNum(rawChange),
-            icon: targetAttr.emoji || targetAttr.icon || catIcon,
+            price: price,
+            change: change,
+            icon: prodAttr.emoji || prodAttr.icon || catIcon,
           };
         });
 
@@ -184,7 +284,7 @@ function CategoryContent() {
       <div className="max-w-xl mx-auto my-16 p-8 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="text-5xl mb-4">🔍</div>
         <h2 className="text-xl font-bold text-gray-800 mb-2">
-          এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি!
+          এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি!
         </h2>
         <p className="text-gray-500 text-sm mb-6">
           অনুগ্রহ করে অন্য কোনো ক্যাটাগরি নির্বাচন করুন অথবা হোম পেজে ফিরে যান।
@@ -208,7 +308,7 @@ function CategoryContent() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{categoryInfo.title}</h1>
           <p className="text-xs text-gray-500 mt-1">
-            {sortedProducts.length}টি পণ্যের আজকের দাম ও পরিবর্তন
+            {toBanglaNum(sortedProducts.length)}টি পণ্যের আজকের দাম ও পরিবর্তন
           </p>
         </div>
       </div>
@@ -229,7 +329,7 @@ function CategoryContent() {
       </div>
 
       <div className="text-xs text-gray-500 pl-1">
-        মোট {sortedProducts.length}টি পণ্য দেখানো হচ্ছে
+        মোট {toBanglaNum(sortedProducts.length)}টি পণ্য দেখানো হচ্ছে
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -258,7 +358,7 @@ function CategoryContent() {
                 <div>
                   <span className="text-[11px] text-gray-400 block">আজকের দাম</span>
                   <span className="text-lg font-extrabold text-gray-900">
-                    {product.price} টাকা
+                    {toBanglaNum(product.price)} টাকা
                   </span>
                 </div>
 
@@ -274,7 +374,7 @@ function CategoryContent() {
                   {isUp === true && "▲ "}
                   {isUp === false && "▼ "}
                   {isUp === null && "— "}
-                  {Math.abs(product.change)}%
+                  {toBanglaNum(Math.abs(product.change))}%
                 </div>
               </div>
             </Link>
