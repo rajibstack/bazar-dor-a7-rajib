@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-// import toast, { Toaster } from "react-hot-toast";
-import { signIn } from "@/lib/auth-client";
+import toast from "react-hot-toast";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -16,21 +16,21 @@ export default function SignInPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await signIn.email({
+      const { data, error } = await authClient.signIn.email({
         email,
         password,
       });
 
       if (error) {
         toast.error(
-          error.message || "লগইন ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।",
+          error.message || "লগইন ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।"
         );
       } else {
         toast.success("সফলভাবে লগইন হয়েছে!");
         router.push("/");
       }
     } catch (err) {
-      toast.error("কোথাও কোনো সমস্যা হয়েছে।");
+      toast.error(err?.message || "কোথাও কোনো সমস্যা হয়েছে।");
     } finally {
       setLoading(false);
     }
@@ -38,19 +38,17 @@ export default function SignInPage() {
 
   const handleSocialSignIn = async (provider) => {
     try {
-      await signIn.social({
+      await authClient.signIn.social({
         provider,
         callbackURL: "/",
       });
     } catch (err) {
-      toast.error("সোশ্যাল লগইন ব্যর্থ হয়েছে।");
+      toast.error(err?.message || "সোশ্যাল লগইন ব্যর্থ হয়েছে।");
     }
   };
 
   return (
     <main className="bg-[#F0F4EC] flex flex-col items-center py-20 px-4">
-      {/* <Toaster position="top-right" /> */}
-
       <div className="text-center mb-4">
         <h1 className="text-3xl font-bold text-gray-900">সাইন ইন</h1>
         <p className="text-sm text-gray-600 mt-1">

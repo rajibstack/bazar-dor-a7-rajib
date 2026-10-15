@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSession, signOut } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import PriceTicker from "./PriceTicker";
 
 const BASE_URL = "/api/bazardor";
@@ -37,6 +37,7 @@ export default function Navbar() {
   const { data: session, isPending } = useSession();
   const searchParams = useSearchParams();
   const params = useParams();
+  const router = useRouter();
 
   const currentCategory = params?.slug || searchParams.get("category");
 
@@ -73,6 +74,16 @@ export default function Navbar() {
     getCategories();
   }, []);
 
+  const handleSignOut = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/signin");
+        },
+      },
+    });
+  };
+
   return (
     <header className="w-full bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
@@ -85,7 +96,7 @@ export default function Navbar() {
               বাজার দর
             </span>
             <span className="text-xs text-gray-500 font-medium">
-              {banglaDate || "শনিবার, ১০ অক্টোবর, ২০২৬"}
+              {banglaDate || "শুক্রবার, ১৬ অক্টোবর, ২০২৬"}
             </span>
           </div>
         </Link>
@@ -99,7 +110,7 @@ export default function Navbar() {
                 {session.user?.name || session.user?.email}
               </span>
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition"
               >
                 সাইন আউট
