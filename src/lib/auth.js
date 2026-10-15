@@ -2,14 +2,28 @@ import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 
-const uri = process.env.BETTER_AUTH_DB_URL;
+const uri = process.env.BETTER_AUTH_DB_URL || "mongodb://127.0.0.1:27017/bazar_dor";
 const client = new MongoClient(uri);
 const db = client.db("bazar_dor");
 
+const getValidServerBaseUrl = () => {
+  const envUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL;
+  if (envUrl) {
+    try {
+      const formatted = envUrl.trim().startsWith("http")
+        ? envUrl.trim()
+        : `https://${envUrl.trim()}`;
+      new URL(formatted);
+      return formatted;
+    } catch (e) {}
+  }
+  return "http://localhost:3000";
+};
+
 export const auth = betterAuth({
   database: mongodbAdapter(db),
-  secret: process.env.BETTER_AUTH_SECRET || "fallback-secret-key-for-build",
-  baseURL: process.env.BETTER_AUTH_URL || "https://bazar-dor-a7-rajib.vercel.app",
+  secret: process.env.BETTER_AUTH_SECRET || "fallback-secret-for-build-only-12345",
+  baseURL: getValidServerBaseUrl(),
   emailAndPassword: {
     enabled: true,
   },
