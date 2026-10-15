@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "বাজার দর - নিত্যপ্রয়োজনীয় পণ্যের সঠিক দাম",
   description: "বাংলাদেশী নিত্যপ্রয়োজনীয় পণ্যের বাজার দর অ্যাপ",
+  icons: {
+    icon: "/logo-icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -27,9 +30,9 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body
-  className="min-h-screen flex flex-col bg-gray-50 text-gray-900"
-  suppressHydrationWarning={true}
->
+        className="min-h-screen flex flex-col bg-gray-50 text-gray-900"
+        suppressHydrationWarning={true}
+      >
         <Suspense fallback={<div className="h-16 bg-white border-b" />}>
           <Navbar />
         </Suspense>

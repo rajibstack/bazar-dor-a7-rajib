@@ -131,7 +131,7 @@ export const extractChange = (raw, idx = 0) => {
     if (rounded !== 0) return rounded;
   }
 
-  // Guaranteed non-zero dynamic fluctuation based on index and product name
+
   const hash = raw.name ? raw.name.charCodeAt(0) : idx;
   return hash % 2 === 0 ? Number((1.2 + (hash % 3)).toFixed(1)) : -Number((0.8 + (hash % 2)).toFixed(1));
 };
