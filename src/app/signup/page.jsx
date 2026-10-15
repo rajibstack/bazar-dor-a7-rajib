@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+// import toast, { Toaster } from "react-hot-toast";
 import { signUp, signIn } from "@/lib/auth-client";
 
 export default function SignUpPage() {
@@ -61,7 +61,7 @@ export default function SignUpPage() {
 
   return (
     <main className="bg-[#F0F4EC] flex flex-col items-center py-20 p-4">
-      <Toaster position="top-right" />
+      {/* <Toaster position="top-right" /> */}
 
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">অ্যাকাউন্ট তৈরি করুন</h1>
