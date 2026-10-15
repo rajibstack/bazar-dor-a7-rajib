@@ -1,23 +1,24 @@
 import { createAuthClient } from "better-auth/react";
 
+// Fallback logic for Next.js Static Prerendering on Vercel
 const getBaseUrl = () => {
+  // 1. Browser runtime
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
-
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    const url = process.env.NEXT_PUBLIC_APP_URL.trim();
-    return url.startsWith("http") ? url : `https://${url}`;
+  
+  // 2. Vercel deployment environment variable
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL;
+  if (appUrl) {
+    return appUrl.startsWith("http") ? appUrl : `https://${appUrl}`;
   }
 
-  return "http://localhost:3000"; // Safe build-time static fallback
+  // 3. Fallback for Vercel Static Page Prerendering phase
+  return "http://localhost:3000";
 };
 
 export const authClient = createAuthClient({
   baseURL: getBaseUrl(),
 });
 
-export const useSession = authClient.useSession;
-export const signIn = authClient.signIn;
-export const signOut = authClient.signOut;
-export const signUp = authClient.signUp;
+export const { useSession, signIn, signOut, signUp } = authClient;
