@@ -1,7 +1,7 @@
 import { betterAuthViewSession } from "better-auth/next-js";
 import { NextResponse } from "next/server";
 
-export async function middleware(request) {
+export async function proxy(request) {
   const path = request.nextUrl.pathname;
 
   const isProductDetailsPage =
