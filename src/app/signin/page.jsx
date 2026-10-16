@@ -23,7 +23,7 @@ export default function SignInPage() {
 
       if (error) {
         toast.error(
-          error.message || "লগইন ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।"
+          error.message || "লগইন ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।",
         );
       } else {
         toast.success("সফলভাবে লগইন হয়েছে!");
@@ -52,7 +52,7 @@ export default function SignInPage() {
       <div className="text-center mb-4">
         <h1 className="text-3xl font-bold text-gray-900">সাইন ইন</h1>
         <p className="text-sm text-gray-600 mt-1">
-          বিস্তৃত দাম, বাজার তুলনা ও প্রোফাইল দেখতে অ্যাকাউন্টে ঢুকুন।
+          বিস্তারিত দাম, বাজার তুলনা ও প্রোফাইল দেখতে অ্যাকাউন্টে ঢুকুন।
         </p>
       </div>
 
