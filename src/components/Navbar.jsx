@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 import PriceTicker from "./PriceTicker";
 
@@ -39,10 +39,24 @@ export default function Navbar() {
   const params = useParams();
   const router = useRouter();
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const currentCategory = params?.slug || searchParams.get("category");
 
   const [categories, setCategories] = useState(defaultCategories);
   const [banglaDate, setBanglaDate] = useState("");
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const today = new Date();
@@ -75,6 +89,7 @@ export default function Navbar() {
   }, []);
 
   const handleSignOut = async () => {
+    setDropdownOpen(false);
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
@@ -103,18 +118,67 @@ export default function Navbar() {
 
         <div className="flex items-center space-x-3">
           {isPending ? (
-            <div className="h-9 w-24 bg-gray-100 animate-pulse rounded-lg" />
+            <div className="h-9 w-28 bg-gray-100 animate-pulse rounded-lg" />
           ) : session ? (
-            <div className="flex items-center space-x-3">
-              <span className="text-sm font-semibold text-gray-700">
-                {session.user?.name || session.user?.email}
-              </span>
+            /* User Profile & Dropdown Menu */
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={handleSignOut}
-                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center space-x-2.5 p-1.5 pl-2 pr-3 border border-gray-200 hover:border-gray-300 rounded-xl bg-white transition hover:shadow-sm"
               >
-                সাইন আউট
+                {/* Profile Image / Avatar */}
+                {session.user?.image ? (
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name || "Profile"}
+                    className="w-8 h-8 rounded-lg object-cover border border-gray-100"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-[#108a00] font-bold flex items-center justify-center text-sm">
+                    {session.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                )}
+
+                {/* User Name */}
+                <span className="text-sm font-semibold text-gray-800 max-w-[120px] truncate">
+                  {session.user?.name || session.user?.email}
+                </span>
+
+                {/* Dropdown Icon */}
+                <span className={`text-xs text-gray-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}>
+                  ▾
+                </span>
               </button>
+
+              {/* Dropdown Options */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 z-50">
+                  <Link
+                    href="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    <span>👤</span> আমার প্রোফাইল
+                  </Link>
+
+                  <Link
+                    href="/profile/update"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    <span>✏️</span> তথ্য আপডেট
+                  </Link>
+
+                  <div className="border-t border-gray-100 my-1" />
+
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                  >
+                    <span>🚪</span> সাইন আউট
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <>
