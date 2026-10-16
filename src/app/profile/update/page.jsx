@@ -100,7 +100,7 @@ export default function UpdateProfilePage() {
         fetchOptions: {
           onSuccess: () => {
             toast.success("প্রোফাইল তথ্য সফলভাবে আপডেট করা হয়েছে!");
-            router.refresh(); // ⚡ নেভবার এবং সাইটের সেশন ডেটা ইনস্ট্যান্ট রিফ্রেশ করার জন্য
+            router.refresh();
             router.push("/profile");
           },
           onError: (ctx) => {
@@ -155,15 +155,17 @@ export default function UpdateProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-800 mb-1">
               নাম
             </label>
+            {/* ⚡ text-gray-900 & font-medium দিয়ে ইনপুট টেক্সট কালার গাঢ় কালো করা হলো */}
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="আপনার নাম লিখুন"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 font-medium placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
             />
           </div>
 
@@ -228,7 +230,7 @@ export default function UpdateProfilePage() {
                 type="button"
                 onClick={handleImageUpload}
                 disabled={!selectedFile || uploading}
-                className="px-5 py-2 bg-[#108a00] hover:bg-[#0d7300] text-white text-sm font-medium rounded-xl transition shadow-sm disabled:opacity-50"
+                className="px-5 py-2 bg-[#108a00] hover:bg-[#0d7300] text-[#ffffff] text-sm font-medium rounded-xl transition shadow-sm disabled:opacity-50"
               >
                 {uploading ? "আপলোড হচ্ছে..." : "আপলোড নিশ্চিত করুন"}
               </button>
